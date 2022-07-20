@@ -4,7 +4,7 @@ export T2ExpFit, T2NoiseExpFit
 using LsqFit
 
 """
-    T2ExpFit(ima::Array{T,4},t::Vector{Number},p0=nothing) where T
+    T2ExpFit(ima::Array{T,4},t::Union{Vector{<:Real},StepRange{<:Real,<:Real}},p0=nothing) where T
 
 Fit the relaxation parameters T2 with the equation : ``S(t) = M_0 \\exp(-\\frac{t}{T2}) ``.
 
@@ -23,9 +23,12 @@ Fit the relaxation parameters T2 with the equation : ``S(t) = M_0 \\exp(-\\frac{
 """
 function T2ExpFit(ima::Array{T,4},t::Union{Vector{<:Real},StepRange{<:Real,<:Real}},p0=nothing;removePoint::Bool=true) where T
     @assert size(ima,4) == length(t)
+    if removePoint
+        t=t[2:end]
+        ima=ima[:,:,:,2:end]
+    end
 
     if isnothing(p0); p0=[maximum(ima),30]; end
-
 
     model(t, p) = p[1] * exp.(-t / p[2])
     
@@ -45,15 +48,15 @@ function T2ExpFit(ima::Array{T,4},t::Union{Vector{<:Real},StepRange{<:Real,<:Rea
 end
 
 """
-    T2NoiseExpFit(ima::Array{T,4},t::Vector{Number},p0=nothing; kwargs...) where T
+    T2NoiseExpFit(ima::Array{T,4},t::Union{Vector{<:Real},StepRange{<:Real,<:Real}},p0=nothing; kwargs...) where T
 
-Fit the relaxation parameters T2 with the equation : ``S(t) = \\sqrt{(M_0 \\exp(-\\frac{t}{T2}))^2 + 2 L \\sigma_g^2``
+Fit the relaxation parameters T2 with the equation : ``S(t) = \\sqrt{(M_0 \\exp(-\\frac{t}{T2}))^2 + 2 L \\sigma_g^2}``
 where L est le nombre de canaux, et ``\\sigma_g`` le bruit gaussien sur les image
 
 # Arguments
 - `ima::Array{T,4}`: image with dimension (x,y,z,t)
 - `t::Union{Vector{<:Real},StepRange{<:Real,<:Real}}`: times vector in ms
-- `p0=nothing`: starting values for fit, if empty p0=[maximum(ima),30]
+- `p0=nothing`: starting values for fit, if empty p0=[maximum(ima),30,maximum(ima)*0.1]
 
 # Keywords
 - `removePoint::Bool=true`: remove the first point before fitting
@@ -70,6 +73,11 @@ where L est le nombre de canaux, et ``\\sigma_g`` le bruit gaussien sur les imag
 """
 function T2NoiseExpFit(ima::Array{T,4},t::Union{Vector{<:Real},StepRange{<:Real,<:Real}},p0=nothing;removePoint::Bool=true,L::Int=1) where T
     @assert size(ima,4) == length(t)
+
+    if removePoint
+        t=t[2:end]
+        ima=ima[:,:,:,2:end]
+    end
 
     if isnothing(p0); p0=[maximum(ima),30,maximum(ima)*0.1]; end
     model(t, p) = sqrt.((p[1] * exp.(-t / p[2])).^2 .+ 2*L*p[3]^2)
