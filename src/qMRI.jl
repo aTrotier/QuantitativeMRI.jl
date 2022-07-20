@@ -33,13 +33,14 @@ function T2ExpFit(ima::Array{T,4},t::Union{Vector{<:Real},StepRange{<:Real,<:Rea
     model(t, p) = p[1] * exp.(-t / p[2])
     
     #fit_vec = LsqFitResult[]
+    inc_size = 8
     M0 = zeros(Float64,size(ima)[1:3])
-    T2 = zeros(Float64,size(ima)[1:3])
+    T2 = copy(M0)
 
-    ima = reshape(ima,:,size(ima,4))
+    ima = reshape(ima,:,size(ima,4))'
 
-    for i = 1:size(ima,1)
-        fit=curve_fit(model, t, ima[i,:], p0)
+    Threads.@threads for i = 1:size(ima,2)
+        fit=curve_fit(model, t, ima[:,i], p0)
         M0[i] = fit.param[1]
         T2[i] = fit.param[2]
     end
@@ -84,13 +85,14 @@ function T2NoiseExpFit(ima::Array{T,4},t::Union{Vector{<:Real},StepRange{<:Real,
     
     #fit_vec = LsqFitResult[]
     M0 = zeros(Float64,size(ima)[1:3])
-    T2 = zeros(Float64,size(ima)[1:3])
-    noise = zeros(Float64,size(ima)[1:3])
+    T2 = copy(M0)
+    noise = copy(M0)
 
-    ima = reshape(ima,:,size(ima,4))
+    ima = reshape(ima,:,size(ima,4))' #permute better for threading
 
-    for i = 1:size(ima,1)
-        fit=curve_fit(model, t, ima[i,:], p0)
+    #@info "Threaded version : "*string(Threads.nthreads())
+    Threads.@threads for i = 1:size(ima,2)
+        fit=curve_fit(model, t, ima[:,i], p0)
         M0[i] = fit.param[1]
         T2[i] = fit.param[2]
         noise[i] = fit.param[3]
