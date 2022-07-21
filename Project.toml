@@ -7,6 +7,7 @@ version = "0.1.0"
 LsqFit = "2fda8390-95c7-5789-9bda-21331edee243"
 
 [compat]
+LsqFit = "0.12"
 julia = "1.7"
 
 [extras]
