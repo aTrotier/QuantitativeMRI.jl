@@ -2,6 +2,7 @@ module qMRI
 
 export T2ExpFit, T2NoiseExpFit
 using LsqFit
+using LoopVectorization
 
 """
     T2ExpFit(ima::Array{T,4},t::Union{Vector{<:Real},StepRange{<:Real,<:Real}},p0=nothing) where T
@@ -28,13 +29,12 @@ function T2ExpFit(ima::Array{T,4},t::Union{Vector{<:Real},StepRange{<:Real,<:Rea
         ima=ima[:,:,:,2:end]
     end
 
-    if isnothing(p0); p0=[maximum(ima),30]; end
+    if isnothing(p0); p0=T([maximum(ima),30]); end
 
     model(t, p) = p[1] * exp.(-t / p[2])
     
     #fit_vec = LsqFitResult[]
-    inc_size = 8
-    M0 = zeros(Float64,size(ima)[1:3])
+    M0 = zeros(T,size(ima)[1:3])
     T2 = copy(M0)
 
     ima = reshape(ima,:,size(ima,4))'
@@ -80,18 +80,17 @@ function T2NoiseExpFit(ima::Array{T,4},t::Union{Vector{<:Real},StepRange{<:Real,
         ima=ima[:,:,:,2:end]
     end
 
-    if isnothing(p0); p0=[maximum(ima),30,maximum(ima)*0.1]; end
+    if isnothing(p0); p0=T[maximum(ima),30,maximum(ima)*0.1]; end
     model(t, p) = sqrt.((p[1] * exp.(-t / p[2])).^2 .+ 2*L*p[3]^2)
     
-    #fit_vec = LsqFitResult[]
-    M0 = zeros(Float64,size(ima)[1:3])
+    M0 = zeros(T,size(ima)[1:3])
     T2 = copy(M0)
     noise = copy(M0)
 
     ima = reshape(ima,:,size(ima,4))' #permute better for threading
-
-    #@info "Threaded version : "*string(Threads.nthreads())
+ 
     Threads.@threads for i = 1:size(ima,2)
+
         fit=curve_fit(model, t, ima[:,i], p0)
         M0[i] = fit.param[1]
         T2[i] = fit.param[2]
@@ -100,5 +99,4 @@ function T2NoiseExpFit(ima::Array{T,4},t::Union{Vector{<:Real},StepRange{<:Real,
 
     return M0,T2,noise
 end
-
 end
