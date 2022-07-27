@@ -4,7 +4,7 @@ using Noise
 using Random
 
 @testset "qMRI.jl" begin
-    Random.seed!(1)
+    Random.seed!(42)
     @info "test T2ExpFit"
     t = 1:1:100
     T2 = 10 # ms
@@ -58,10 +58,10 @@ using Random
     x0 = [1,70.0,0.9,0]
     M0_maps, T2_maps, delta_maps, noise_maps = T2EpgNoiseFit(echos_noise,params,x0)
 
-    @test (abs(M0_maps[1]) - M0)/M0 < 1e-2
-    @test (abs(T2_maps[1]) - params[:T2])/params[:T2] < 1e-2
-    @test (abs(delta_maps[1]) - params[:delta])/params[:delta] < 1e-2
-    @test (abs(noise_maps[1])/sqrt(2) - σ)/σ < 1e-2
+    @test (abs(M0_maps[1]) - M0)/M0 < 0.05
+    @test (abs(T2_maps[1]) - params[:T2])/params[:T2] < 0.05
+    @test (abs(delta_maps[1]) - params[:delta])/params[:delta] < 0.05
+    @test (abs(noise_maps[1])/sqrt(2) - σ)/σ < 0.05
 end
 
 
