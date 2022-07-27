@@ -1,8 +1,10 @@
 using qMRI
 using Test
 using Noise
+using Random
 
 @testset "qMRI.jl" begin
+    Random.seed!(1)
     @info "test T2ExpFit"
     t = 1:1:100
     T2 = 10 # ms
