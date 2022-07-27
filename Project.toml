@@ -5,6 +5,9 @@ version = "0.1.0"
 
 [deps]
 LsqFit = "2fda8390-95c7-5789-9bda-21331edee243"
+MRIBase = "f7771a9a-6e57-4e71-863b-6e4b6a2f17df"
+Noise = "81d43f40-5267-43b7-ae1c-8b967f377efa"
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 
 [compat]
 julia = "1.7"
