@@ -75,10 +75,10 @@ using Random
         phase2 = repeat(phase,1,1,1,2)
 
         ima2 = ima .* exp.(im*phase)
-        imMP = create_mp2rage(ima2)
+        imMP = mp2rage_comb(ima2)
         @test all((imMP .- 0.4) .< eps(Float64))
 
-        imMP2 = create_mp2rage(abs.(ima2),phase2)
+        imMP2 = mp2rage_comb(abs.(ima2),phase2)
         @test all((imMP2 .- 0.4) .< eps(Float64))
     end
 end
