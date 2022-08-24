@@ -90,6 +90,8 @@ using Random
         α₁ = 7
         α₂ = 7
 
+        p = ParamsMP2RAGE(TI₁,TI₂,TR,MP2RAGE_TR,ETL,α₁,α₂)
+
         # test Broadcasting
         T1map, = mp2rage_T1maps([[0,0 ];;[ 0,0]],p)
         @test T1map == [[1396,1396];;[1396,1396]]
