@@ -80,5 +80,18 @@ using Random
 
         imMP2 = mp2rage_comb(abs.(ima2),phase2)
         @test all((imMP2 .- 0.4) .< eps(Float64))
+
+        # T1 maps
+        TI₁ = 800
+        TI₂ = 2200
+        TR = 7
+        MP2RAGE_TR = 6250
+        ETL = 128
+        α₁ = 7
+        α₂ = 7
+
+        # test Broadcasting
+        T1map, = mp2rage_T1maps([[0,0 ];;[ 0,0]],p)
+        @test T1map == [[1396,1396];;[1396,1396]]
     end
 end

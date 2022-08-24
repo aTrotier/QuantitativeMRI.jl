@@ -58,43 +58,48 @@ end
 
 
 """
-    T1FromMP2RAGE(im_MP2::Array{T, 3},b::BrukerFile;T1range=1:10000)
+mp2rage_T1maps(im_MP2::Array{T},p::ParamsMP2RAGE;T1Range=1:10000,effInv = 0.96) where T <: Real
 
 Compute Lookup table from MP2RAGE parameters
 
 # Arguments
-- `ima::Array{Complex{<:Real}}`: image of any dimension with TI = 2
-- `ima_magn::Array{<:Real},`: magnitude image of any dimension with TI = 2
-- `ima_phase::Array{<:Real},`: magnitude image of any dimension with TI = 2
+- `im_MP2::Array{T}`
+- `p::ParamsMP2RAGE`
+
 
 # Keywords
+- T1Range = 1:10000
+- effInv = 0.96
 
 # Returns
-- MP2RAGE images
+- T1map
+- T1Range
+- lookUpTable
 
 # Bibliography
 - Marques JP, Kober T, Krueger G, van der Zwaag W, Van de Moortele P-F, Gruetter R. MP2RAGE, a self bias-field corrected sequence for improved segmentation and T1-mapping at high field. NeuroImage 2010;49:1271–1281 doi: 10.1016/j.neuroimage.2009.10.002.
 
 """
 function mp2rage_T1maps(im_MP2::Array{T},p::ParamsMP2RAGE;T1Range=1:10000,effInv = 0.96) where T<:Real
-
     # Generate lookUpTable + cut min
-    lookUpTable = mp2rage_lookuptable(p; T1Range=T1Range, effInv=effInv)
+    lookUpTable, = mp2rage_lookuptable(p; T1Range=T1Range, effInv=effInv)
     maxVal,maxIdx = findmax(lookUpTable)
     T1Range = T1Range[maxIdx:end]
     lookUpTable = lookUpTable[maxIdx:end]
 
-    T1map = zeros(typeof(im_MP2[1]),size(im_MP2))
-
+    T1map = MP2_T1.(im_MP2,Ref(lookUpTable),Ref(T1Range))
     return T1map, T1Range, lookUpTable
 end
 
-function MP2_T1maps(p_MP2::T,lookUpTable) where T <: Real
+function MP2_T1(p_MP2::T,lookUpTable,T1Range) where T <: Real
     idxFirst = findfirst(lookUpTable .<= p_MP2)
 
     if !isnothing(idxFirst)
-        T1map = T1Range[idxFirst]
+        T1 = T1Range[idxFirst]
+    else
+        T1 = 0
     end
+    return T1
 end
 
 """
