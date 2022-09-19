@@ -91,17 +91,18 @@ function mp2rage_T1maps(im_MP2::Array{T},p::ParamsMP2RAGE;T1Range=1:10000,effInv
     T1Range = T1Range[1:minIdx]
     lookUpTable = lookUpTable[1:minIdx]
 
-    T1map = MP2_T1.(im_MP2,Ref(lookUpTable),Ref(T1Range))
+    # reverse lookUpTable and Range for optimization purpose
+    T1map = MP2_T1.(im_MP2,Ref(lookUpTable[end:-1:1]),Ref(T1Range[end:-1:1]))
     return T1map, T1Range, lookUpTable
 end
 
-function MP2_T1(p_MP2,lookUpTable,T1Range)
-    idxFirst = findfirst(lookUpTable .<= p_MP2)
+function MP2_T1(p_MP2::T,lookUpTable::Vector{T},T1Range::Vector{T}) where T
+    idxFirst = searchsortedfirst(lookUpTable, p_MP2,lt= <=)
 
-    if !isnothing(idxFirst)
-        T1 = T1Range[idxFirst]
+    if idxFirst <= length(T1Range)
+        T1 = T1Range[idxFirst]+(T1Range[idxFirst+1]-T1Range[idxFirst])*(p_MP2-lookUpTable[idxFirst])
     else
-        T1 = 0
+        T1 = T(0)
     end
     return T1
 end
