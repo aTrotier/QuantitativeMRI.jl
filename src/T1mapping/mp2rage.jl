@@ -91,7 +91,9 @@ function mp2rage_T1maps(im_MP2::Array{T},p::ParamsMP2RAGE;T1Range=1:10000,effInv
     T1Range = T1Range[1:minIdx]
     lookUpTable = lookUpTable[1:minIdx]
 
-    # reverse lookUpTable and Range for optimization purpose
+    # reverse lookUpTable and Range for optimization purpose + convert to type of MP2
+    T1Range = T.(T1Range)
+    lookUpTable = T.(lookUpTable)
     T1map = MP2_T1.(im_MP2,Ref(lookUpTable[end:-1:1]),Ref(T1Range[end:-1:1]))
     return T1map, T1Range, lookUpTable
 end
