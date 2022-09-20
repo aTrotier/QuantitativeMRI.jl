@@ -93,7 +93,8 @@ using Random
         p = ParamsMP2RAGE(TI₁,TI₂,TR,MP2RAGE_TR,ETL,α₁,α₂)
 
         # test Broadcasting
-        T1map, = mp2rage_T1maps([[0,0 ];;[ 0,0]],p)
-        @test T1map == [[1396,1396];;[1396,1396]]
+        T = Float32
+        T1map, = mp2rage_T1maps(T.([[0,0 ];;[ 0,0]]),p)
+        @test any(abs.(T1map .- [[1396.0,1396.0];;[1396.0,1396.0]]) .< [[1.0,1.0];;[1.0,1.0]])
     end
 end
