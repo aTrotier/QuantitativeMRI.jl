@@ -1,5 +1,7 @@
-export mp2rage_comb, ParamsMP2RAGE, mp2rage_T1maps, mp2rage_lookuptable
+export mp2rage_comb, ParamsMP2RAGE, mp2rage_T1maps, mp2rage_lookuptable,
+mp2rage_lookuptable_radial
 
+using Statistics
 mutable struct ParamsMP2RAGE
     TI₁::Float64 #ms
     TI₂::Float64 #ms
@@ -56,6 +58,63 @@ function mp2rage_comb(ima_magn::Array{T},ima_phase::Array{T}) where T<:Real
 end
 
 
+"""
+    mp2rage_lookuptable(p::ParamsMP2RAGE;T1Range=1:0.5:10000,effInv = 0.96)
+
+    Compute lookup table according to the MP2RAGE parameters
+
+# Arguments
+- `p::ParamsMP2RAGE`: MP2RAGE parameters structure
+
+# Keywords
+- `T1Range` : T1 range computed
+- `effInv` : Inversion efficiency of the pulse
+
+# Returns
+- lookUpTable (NaN .= 0)
+
+# Bibliography
+- Marques JP, Kober T, Krueger G, van der Zwaag W, Van de Moortele P-F, Gruetter R. MP2RAGE, a self bias-field corrected sequence for improved segmentation and T1-mapping at high field. NeuroImage 2010;49:1271–1281 doi: 10.1016/j.neuroimage.2009.10.002.
+"""
+function mp2rage_lookuptable(p::ParamsMP2RAGE;T1Range=1:0.5:10000,effInv = 0.96)
+    TI1 =p.TI₁
+    TI2 =p.TI₂
+    TR = p.TR
+    MP2RAGE_TR = p.MP2RAGE_TR
+    n = p.ETL
+    α₁ = p.α₁
+    α₂ = p.α₂
+
+    # compute exponential decay
+    E1=vec(exp.(-TR./T1Range))
+    EA=vec(exp.(-(TI1-(n./2-1).*TR)./T1Range))
+    EB=vec(exp.(-(TI2-TI1-n.*TR)./T1Range))
+    EC=vec(exp.(-(MP2RAGE_TR.-(TI2+(n./2).*TR))./T1Range))
+
+    # compute mzss =[(B).*(cosd(α₂).*E1).^n+A].*EC+(1-EC);
+    B = ((1 .- EA).*(cosd(α₁).*E1).^n + (1 .- E1).*(1 .- (cosd(α₁).*E1).^n)./(1 .- cosd(α₁).*E1)).*EB+(1 .- EB)
+    A = (1 .- E1).*((1 .- (cosd(α₂).*E1).^n)./(1 .- cosd(α₂).*E1))
+
+    mzss_num=((B).*(cosd(α₂).*E1).^n+A).*EC+(1 .-EC)
+    mzss_denom=(1 .+ effInv.*(cosd(α₁).*cosd(α₂)).^n .* exp.(-MP2RAGE_TR./T1Range))
+    mzss=mzss_num./mzss_denom
+
+    # compute GRE1= sind(α₁).*(A.*(cosd(α₁).*E1).^(n./2-1)+B)
+    A=-effInv.*mzss.*EA+(1 .- EA)
+    B=(1 .- E1).*(1 .- (cosd(α₁).*E1).^(n./2-1))./(1 .- cosd(α₁).*E1)
+    GRE1=sind(α₁).*(A.*(cosd(α₁).*E1).^(n./2-1)+B)
+
+    # compute GRE2= sind(α₂).*(A-B)
+    A=(mzss-(1 .- EC))./(EC.*(cosd(α₂).*E1).^(n./2))
+    B=(1 .- E1).*((cosd(α₂).*E1).^(-n./2) .- 1)./(1 .- cosd(α₂).*E1)
+
+    GRE2=sind(α₂).*(A-B)
+
+    lookUpTable=GRE2.*GRE1./(GRE1.*GRE1+GRE2.*GRE2)
+    lookUpTable[isnan.(lookUpTable)].= 0
+    return lookUpTable, T1Range
+end
+
 
 """
 mp2rage_T1maps(im_MP2::Array{T},p::ParamsMP2RAGE;T1Range=1:10000,effInv = 0.96) where T <: Real
@@ -110,7 +169,7 @@ function MP2_T1(p_MP2::T,lookUpTable::Vector{T},T1Range::Vector{T}) where T
 end
 
 """
-    mp2rage_lookuptable(p::ParamsMP2RAGE;T1Range=1:0.5:10000,effInv = 0.96)
+    mp2rage_lookuptable_radial(p::ParamsMP2RAGE;T1Range=1:0.5:10000,effInv = 0.96)
 
     Compute lookup table according to the MP2RAGE parameters
 
@@ -127,7 +186,7 @@ end
 # Bibliography
 - Marques JP, Kober T, Krueger G, van der Zwaag W, Van de Moortele P-F, Gruetter R. MP2RAGE, a self bias-field corrected sequence for improved segmentation and T1-mapping at high field. NeuroImage 2010;49:1271–1281 doi: 10.1016/j.neuroimage.2009.10.002.
 """
-function mp2rage_lookuptable(p::ParamsMP2RAGE;T1Range=1:0.5:10000,effInv = 0.96)
+function mp2rage_lookuptable_radial(p::ParamsMP2RAGE;T1Range=1:0.5:10000,effInv = 0.96)
     TI1 =p.TI₁
     TI2 =p.TI₂
     TR = p.TR
@@ -150,16 +209,23 @@ function mp2rage_lookuptable(p::ParamsMP2RAGE;T1Range=1:0.5:10000,effInv = 0.96)
     mzss_denom=(1 .+ effInv.*(cosd(α₁).*cosd(α₂)).^n .* exp.(-MP2RAGE_TR./T1Range))
     mzss=mzss_num./mzss_denom
 
-    # compute GRE1= sind(α₁).*(A.*(cosd(α₁).*E1).^(n./2-1)+B)
-    A=-effInv.*mzss.*EA+(1 .- EA)
-    B=(1 .- E1).*(1 .- (cosd(α₁).*E1).^(n./2-1))./(1 .- cosd(α₁).*E1)
-    GRE1=sind(α₁).*(A.*(cosd(α₁).*E1).^(n./2-1)+B)
+    GRE1_tmp=zeros(Float64,length(T1Range),n)
+    GRE2_tmp=zeros(Float64,length(T1Range),n)
+    for i in eachindex(1:n)
+        # compute GRE1= sind(α₁).*(A.*(cosd(α₁).*E1).^(n./2-1)+B)
+        A=-effInv.*mzss.*EA+(1 .- EA)
+        B=(1 .- E1).*(1 .- (cosd(α₁).*E1).^(i-1))./(1 .- cosd(α₁).*E1)
+        GRE1_tmp[:,i]=sind(α₁).*(A.*(cosd(α₁).*E1).^(i-1)+B)
 
-    # compute GRE2= sind(α₂).*(A-B)
-    A=(mzss-(1 .- EC))./(EC.*(cosd(α₂).*E1).^(n./2))
-    B=(1 .- E1).*((cosd(α₂).*E1).^(-n./2) .- 1)./(1 .- cosd(α₂).*E1)
+        # compute GRE2= sind(α₂).*(A-B)
+        A=(mzss-(1 .- EC))./(EC.*(cosd(α₂).*E1).^(n-i))
+        B=(1 .- E1).*((cosd(α₂).*E1).^(-(n-i)) .- 1)./(1 .- cosd(α₂).*E1)
 
-    GRE2=sind(α₂).*(A-B)
+        GRE2_tmp[:,i]=sind(α₂).*(A-B)
+    end
+
+    GRE1 = mean(GRE1_tmp,dims=2)
+    GRE2 = mean(GRE2_tmp,dims=2)
 
     lookUpTable=GRE2.*GRE1./(GRE1.*GRE1+GRE2.*GRE2)
     lookUpTable[isnan.(lookUpTable)].= 0
