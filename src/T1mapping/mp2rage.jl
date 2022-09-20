@@ -101,7 +101,7 @@ end
 function MP2_T1(p_MP2::T,lookUpTable::Vector{T},T1Range::Vector{T}) where T
     idxFirst = searchsortedfirst(lookUpTable, p_MP2,lt= <=)
 
-    if idxFirst <= length(T1Range)
+    if idxFirst <= length(T1Range)-1
         T1 = T1Range[idxFirst]+(T1Range[idxFirst+1]-T1Range[idxFirst])*(p_MP2-lookUpTable[idxFirst])
     else
         T1 = T(0)
