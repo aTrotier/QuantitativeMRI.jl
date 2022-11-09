@@ -1,5 +1,6 @@
 export T2Fit_Exp, T2Fit_ExpNoise, T2Fit_EpgNoise, qmri_echoAmplitudes
 
+using MRISimulation
 """
     T2Fit_Exp(ima::Array{T,4},t::Union{Vector{<:Real},StepRange{<:Real,<:Real}},p0=nothing) where T<:Real
 
@@ -180,7 +181,7 @@ function qmri_echoAmplitudes(params::Dict{Symbol,Any})
     TRefoc_vec = [TE/2:TE:TE*50...]
     TE_vec = [TE:TE:TE*train_length...]
 
-    MESE_seq = MRIBase.MESequence(delta * π / 2, delta * Refoc_vec, TRefoc_vec, TE_vec)
+    MESE_seq = MESequence(delta * π / 2, delta * Refoc_vec, TRefoc_vec, TE_vec)
     echos = echoAmplitudes(MESE_seq, 1 / params[:T1], 1 / params[:T2])
     return echos
 end
