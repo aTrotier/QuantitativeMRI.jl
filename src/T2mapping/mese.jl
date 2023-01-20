@@ -2,13 +2,13 @@ export T2Fit_Exp, T2Fit_ExpNoise, T2Fit_EpgNoise, qmri_echoAmplitudes
 
 using MRISimulation
 """
-    T2Fit_Exp(ima::Array{T,4},t::Union{Vector{<:Real},StepRange{<:Real,<:Real}},p0=nothing) where T<:Real
+    T2Fit_Exp(ima::Array{T,4},t::AbstractVector{<:Real},p0=nothing) where T<:Real
 
 Fit the relaxation parameters T2 with the equation : ``S(t) = M_0 \\exp(-\\frac{t}{T2})``.
 
 # Arguments
 - `ima::Array{T,4}`: image with dimension (x,y,z,t)
-- `t::Union{Vector{<:Real},StepRange{<:Real,<:Real}}`: times vector in ms
+- `t::AbstractVector{<:Real}`: times vector in ms
 - `p0=nothing`: starting values for fit, if empty p0=[maximum(ima),30]
 
 # Keywords
@@ -18,7 +18,7 @@ Fit the relaxation parameters T2 with the equation : ``S(t) = M_0 \\exp(-\\frac{
 - M₀ maps (no unit)
 - T₂ maps (ms)
 """
-function T2Fit_Exp(ima::Array{T,4}, t::Union{Vector{<:Real},StepRange{<:Real,<:Real}}, p0=nothing; removePoint::Bool=true) where {T<:Real}
+function T2Fit_Exp(ima::Array{T,4}, t::AbstractVector{<:Real}, p0=nothing; removePoint::Bool=true) where {T<:Real}
     @assert size(ima, 4) == length(t)
     if removePoint
         t = t[2:end]
@@ -47,14 +47,14 @@ function T2Fit_Exp(ima::Array{T,4}, t::Union{Vector{<:Real},StepRange{<:Real,<:R
 end
 
 """
-    T2Fit_ExpNoise(ima::Array{T,4},t::Union{Vector{<:Real},StepRange{<:Real,<:Real}},p0=nothing; kwargs...) where T<:Real
+    T2Fit_ExpNoise(ima::Array{T,4},t::AbstractVector{<:Real},p0=nothing; kwargs...) where T<:Real
 
 Fit the relaxation parameters T2 with the equation : ``S(t) = \\sqrt{(M_0 \\exp(-\\frac{t}{T2}))^2 + 2 L \\sigma_g^2}``
 where L est le nombre de canaux, et ``\\sigma_g`` le bruit gaussien sur les image
 
 # Arguments
 - `ima::Array{T,4}`: image with dimension (x,y,z,t)
-- `t::Union{Vector{<:Real},StepRange{<:Real,<:Real}}`: times vector in ms
+- `t::AbstractVector{<:Real}`: times vector in ms
 - `p0=nothing`: starting values for fit, if empty p0=[maximum(ima),30,maximum(ima)*0.1]
 
 # Keywords
@@ -70,7 +70,7 @@ where L est le nombre de canaux, et ``\\sigma_g`` le bruit gaussien sur les imag
 - Cárdenas-Blanco A, Tejos C, Irarrazaval P, Cameron I. Noise in magnitude magnetic resonance images. Concepts Magn Reson Part A [Internet]. 2008 Nov;32A(6):409–16. Available from: http://doi.wiley.com/10.1002/cmr.a.20124
 - Feng Y, He T, Gatehouse PD, Li X, Harith Alam M, Pennell DJ, et al. Improved MRI R 2 * relaxometry of iron-loaded liver with noise correction. Magn Reson Med [Internet]. 2013 Dec;70(6):1765–74. Available from: http://doi.wiley.com/10.1002/mrm.24607
 """
-function T2Fit_ExpNoise(ima::Array{T,4}, t::Union{Vector{<:Real},StepRange{<:Real,<:Real}}, p0=nothing; removePoint::Bool=true, L::Int=1) where {T<:Real}
+function T2Fit_ExpNoise(ima::Array{T,4}, t::AbstractVector{<:Real}, p0=nothing; removePoint::Bool=true, L::Int=1) where {T<:Real}
     @assert size(ima, 4) == length(t)
 
     if removePoint
