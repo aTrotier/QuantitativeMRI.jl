@@ -7,13 +7,13 @@ using Random
     @testset "T2Fit" begin
         Random.seed!(42)
         @info "T2Fit"
-        t = 1:1:100
+        t = 1.0:1.0:100.0
         T2 = 10 # ms
         M0 = 1
 
         S = M0 * exp.(-t/T2)
         S = reshape(S,1,1,1,:)
-        M0_fit,T2_fit = T2Fit_Exp(S,[t...])
+        M0_fit,T2_fit = T2Fit_Exp(S,t)
         @test abs.(M0 - M0_fit[1]) < 10e-6 && abs.(T2 - T2_fit[1]) < 10e-6
 
         @info "T2Fit + remove"
@@ -23,11 +23,11 @@ using Random
 
         S = M0 * exp.(-t/T2)
         S = reshape(S,1,1,1,:)
-        M0_fit,T2_fit = T2Fit_Exp(S,[t...],removePoint=true)
+        M0_fit,T2_fit = T2Fit_Exp(S,t,removePoint=true)
         @test abs.(M0 - M0_fit[1]) < 10e-6 && abs.(T2 - T2_fit[1]) < 10e-6
 
         @info "T2Fit_ExpNoise"
-        t = 1:1:100
+        t = collect(1.0:1.0:100.0)
         T2 = 30 # ms
         M0 = 1000
         σ = 50
