@@ -1,7 +1,7 @@
 name = "qMRI"
 uuid = "659767e3-31a7-4dc1-8563-6e03f484b231"
 authors = ["Aurélien Trotier <a.trotier@gmail.com>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 LsqFit = "2fda8390-95c7-5789-9bda-21331edee243"

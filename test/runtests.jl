@@ -13,7 +13,7 @@ using Random
 
         S = M0 * exp.(-t/T2)
         S = reshape(S,1,1,1,:)
-        M0_fit,T2_fit = T2Fit_Exp(S,t)
+        M0_fit,T2_fit = T2Fit_Exp(S,eltype(S).(t))
         @test abs.(M0 - M0_fit[1]) < 10e-6 && abs.(T2 - T2_fit[1]) < 10e-6
 
         @info "T2Fit + remove"
@@ -23,7 +23,7 @@ using Random
 
         S = M0 * exp.(-t/T2)
         S = reshape(S,1,1,1,:)
-        M0_fit,T2_fit = T2Fit_Exp(S,t,removePoint=true)
+        M0_fit,T2_fit = T2Fit_Exp(S,eltype(S).(t),removePoint=true)
         @test abs.(M0 - M0_fit[1]) < 10e-6 && abs.(T2 - T2_fit[1]) < 10e-6
 
         @info "T2Fit_ExpNoise"
@@ -35,7 +35,7 @@ using Random
 
         S = sqrt.((M0 * exp.(-t/T2)).^2 .+ 2*L*σ^2)
         S = reshape(S,1,1,1,:)
-        M0_fit,T2_fit,σ_fit = T2Fit_ExpNoise(S,t;L=L)
+        M0_fit,T2_fit,σ_fit = T2Fit_ExpNoise(S,eltype(S).(t);L=L)
         @test abs.(M0 - M0_fit[1]) < 10e-6 && abs.(T2 - T2_fit[1]) < 10e-6 && abs.(σ - σ_fit[1]) < 10e-6
 
         # epg fit
