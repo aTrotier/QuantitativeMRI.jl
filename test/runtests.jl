@@ -1,9 +1,9 @@
-using qMRI
+using QuantitativeMRI
 using Test
 using Noise
 using Random
 
-@testset "qMRI.jl" begin
+@testset "QuantitativeMRI.jl" begin
     @testset "T2Fit" begin
         Random.seed!(42)
         @info "T2Fit"

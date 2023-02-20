@@ -1,4 +1,4 @@
-module qMRI
+module QuantitativeMRI
 
 using LsqFit
 using Optim

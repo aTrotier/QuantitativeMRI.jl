@@ -1,16 +1,16 @@
-using qMRI
+using QuantitativeMRI
 using Documenter
 
-DocMeta.setdocmeta!(qMRI, :DocTestSetup, :(using qMRI); recursive=true)
+DocMeta.setdocmeta!(QuantitativeMRI, :DocTestSetup, :(using QuantitativeMRI); recursive=true)
 
 makedocs(;
-    modules=[qMRI],
+    modules=[QuantitativeMRI],
     authors="Aurélien Trotier <a.trotier@gmail.com>",
-    repo="https://github.com/aTrotier/qMRI.jl/blob/{commit}{path}#{line}",
-    sitename="qMRI.jl",
+    repo="https://github.com/aTrotier/QuantitativeMRI.jl/blob/{commit}{path}#{line}",
+    sitename="QuantitativeMRI.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://aTrotier.github.io/qMRI.jl",
+        canonical="https://aTrotier.github.io/QuantitativeMRI.jl",
         assets=String[],
     ),
     pages=[
@@ -19,6 +19,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/aTrotier/qMRI.jl",
+    repo="github.com/aTrotier/QuantitativeMRI.jl",
     devbranch="main",
 )

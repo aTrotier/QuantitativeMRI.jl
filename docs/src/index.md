@@ -1,14 +1,14 @@
 ```@meta
-CurrentModule = qMRI
+CurrentModule = QuantitativeMRI
 ```
 
-# qMRI
+# QuantitativeMRI
 
-Documentation for [qMRI](https://github.com/aTrotier/qMRI.jl).
+Documentation for [QuantitativeMRI](https://github.com/aTrotier/QuantitativeMRI.jl).
 
 ```@index
 ```
 
 ```@autodocs
-Modules = [qMRI]
+Modules = [QuantitativeMRI]
 ```
