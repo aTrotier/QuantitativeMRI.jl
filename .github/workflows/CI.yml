@@ -55,6 +55,6 @@ jobs:
       - run: |
           julia --project=docs -e '
             using Documenter: DocMeta, doctest
-            using qMRI
-            DocMeta.setdocmeta!(qMRI, :DocTestSetup, :(using qMRI); recursive=true)
-            doctest(qMRI)'
+            using QuantitativeMRI
+            DocMeta.setdocmeta!(QuantitativeMRI, :DocTestSetup, :(using QuantitativeMRI); recursive=true)
+            doctest(QuantitativeMRI)'
