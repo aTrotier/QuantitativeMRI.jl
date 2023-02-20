@@ -1,4 +1,4 @@
-name = "qMRI"
+name = "QuantitativeMRI"
 uuid = "659767e3-31a7-4dc1-8563-6e03f484b231"
 authors = ["Aurélien Trotier <a.trotier@gmail.com>"]
 version = "0.1.1"
