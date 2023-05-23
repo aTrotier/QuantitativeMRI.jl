@@ -13,8 +13,8 @@ using Random
 
         S = M0 * exp.(-t/T2)
         S = reshape(S,1,1,1,:)
-        M0_fit,T2_fit = T2Fit_Exp(S,eltype(S).(t))
-        @test abs.(M0 - M0_fit[1]) < 10e-6 && abs.(T2 - T2_fit[1]) < 10e-6
+        fit_param,fit_vec,model = T2Fit_Exp(S,eltype(S).(t))
+        @test abs.(M0 - fit_param[1]) < 10e-6 && abs.(T2 - fit_param[2]) < 10e-6
 
         @info "T2Fit + remove"
         t = 1:1:100
@@ -24,7 +24,7 @@ using Random
         S = M0 * exp.(-t/T2)
         S = reshape(S,1,1,1,:)
         M0_fit,T2_fit = T2Fit_Exp(S,eltype(S).(t),removePoint=true)
-        @test abs.(M0 - M0_fit[1]) < 10e-6 && abs.(T2 - T2_fit[1]) < 10e-6
+        @test abs.(M0 - fit_param[1]) < 10e-6 && abs.(T2 - fit_param[2]) < 10e-6
 
         @info "T2Fit_ExpNoise"
         t = collect(1.0:1.0:100.0)
@@ -35,8 +35,8 @@ using Random
 
         S = sqrt.((M0 * exp.(-t/T2)).^2 .+ 2*L*σ^2)
         S = reshape(S,1,1,1,:)
-        M0_fit,T2_fit,σ_fit = T2Fit_ExpNoise(S,eltype(S).(t);L=L)
-        @test abs.(M0 - M0_fit[1]) < 10e-6 && abs.(T2 - T2_fit[1]) < 10e-6 && abs.(σ - σ_fit[1]) < 10e-6
+        fit_param,fit_vec,model = T2Fit_ExpNoise(S,eltype(S).(t);L=L)
+        @test abs.(M0 - fit_param[1]) < 10e-6 && abs.(T2 - fit_param[2]) < 10e-6 && abs.(σ - fit_param[3]) < 10e-6
 
         # epg fit
         @info "T2Fit_EpgNoise"
