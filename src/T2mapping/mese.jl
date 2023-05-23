@@ -36,7 +36,7 @@ function T2Fit_Exp(ima::Array{T,N}, t::AbstractVector{T}, p0=nothing; removePoin
     end
 
     if isnothing(p0)
-        p0 = [(maximum(ima)-median(ima))/2, T.(30)]
+        p0 = [maximum(ima), T.(30)]
     end
 
     model(t, p) = p[1] * exp.(-t / p[2])
@@ -44,11 +44,9 @@ function T2Fit_Exp(ima::Array{T,N}, t::AbstractVector{T}, p0=nothing; removePoin
     fit_param = zeros(eltype(ima),size(ima, 2),2)
     fit_vec = Vector{LsqFit.LsqFitResult}(undef,size(ima,2))
 
-    lb=T.([0,0])
-
     @inbounds Threads.@threads for i in 1:size(ima, 2)
         try
-            fit_vec[i] = curve_fit(model, t, ima[:, i], p0,lower=lb,autodiff=:forwarddiff)
+            fit_vec[i] = curve_fit(model, t, ima[:, i], p0)
             fit_param[i,:] = fit_vec[i].param
         catch
             fit_param[i,:] .= NaN
@@ -108,18 +106,17 @@ function T2Fit_ExpNoise(ima::Array{T,N}, t::AbstractVector{T}, p0=nothing; remov
     end
 
     if isnothing(p0)
-        p0 = T.([(maximum(ima)-median(ima))/2, 30.0, (maximum(ima)-median(ima))/2 * 0.1])
+        p0 = T.([maximum(ima), 30.0, maximum(ima) * 0.1])
     end
 
     model(t, p) = sqrt.((p[1] * exp.(-t / p[2])) .^ 2 .+ 2 * L * p[3]^2)
 
     fit_param = zeros(eltype(ima),size(ima, 2),3)
     fit_vec = Vector{LsqFit.LsqFitResult}(undef,size(ima,2))
-    lb = T.([0,0.01,0])
 
     @inbounds Threads.@threads for i = 1:size(ima, 2)
         try
-            fit_vec[i] = curve_fit(model, t, ima[:, i], p0,lower=lb,autodiff=:forwarddiff)
+            fit_vec[i] = curve_fit(model, t, ima[:, i], p0)
             fit_param[i,:] = fit_vec[i].param
         catch
             fit_param[i,:] .= NaN
