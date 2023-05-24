@@ -1,5 +1,5 @@
 export mp2rage_comb, ParamsMP2RAGE, mp2rage_T1maps, mp2rage_lookuptable,
-mp2rage_lookuptable_radial
+mp2rage_lookuptable_radial, mp2rage_lookuptable_cartesian
 
 using Statistics
 mutable struct ParamsMP2RAGE
@@ -60,7 +60,9 @@ end
 """
 mp2rage_T1maps(im_MP2::Array{T},p::ParamsMP2RAGE;T1Range=1:10000,effInv = 0.96) where T <: Real
 
-Compute Lookup table from MP2RAGE parameters
+Compute Lookup table from MP2RAGE parameters. 
+keywords radial = false means that only the central echo is used to compute the signal (standard method for cartesian acquisition)
+If radial = true, all the echoes are sum.
 
 # Arguments
 - `im_MP2::Array{T}`
@@ -70,6 +72,7 @@ Compute Lookup table from MP2RAGE parameters
 # Keywords
 - T1Range = 1:10000
 - effInv = 0.96
+- radial = false 
 
 # Returns
 - T1map
@@ -79,9 +82,13 @@ Compute Lookup table from MP2RAGE parameters
 # Bibliography
 - Marques JP, Kober T, Krueger G, van der Zwaag W, Van de Moortele P-F, Gruetter R. MP2RAGE, a self bias-field corrected sequence for improved segmentation and T1-mapping at high field. NeuroImage 2010;49:1271–1281 doi: 10.1016/j.neuroimage.2009.10.002.
 """
-function mp2rage_T1maps(im_MP2::Array{T},p::ParamsMP2RAGE;T1Range=1:10000,effInv = 0.96) where T<:Real
+function mp2rage_T1maps(im_MP2::Array{T},p::ParamsMP2RAGE;T1Range=1:10000,effInv = 0.96,radial=false) where T<:Real
     # Generate lookUpTable + cut min
-    lookUpTable, = mp2rage_lookuptable(p; T1Range=T1Range, effInv=effInv)
+    if !radial
+        lookUpTable,T1Range = mp2rage_lookuptable_cartesian(p; T1Range=T1Range, effInv=effInv)
+    else
+        lookUpTable,T1Range = mp2rage_lookuptable_radial(p; T1Range=T1Range, effInv=effInv)
+    end
     maxVal,maxIdx = findmax(lookUpTable)
     T1Range = T1Range[maxIdx:end]
     lookUpTable = lookUpTable[maxIdx:end]
@@ -126,7 +133,7 @@ end
 # Bibliography
 - Marques JP, Kober T, Krueger G, van der Zwaag W, Van de Moortele P-F, Gruetter R. MP2RAGE, a self bias-field corrected sequence for improved segmentation and T1-mapping at high field. NeuroImage 2010;49:1271–1281 doi: 10.1016/j.neuroimage.2009.10.002.
 """
-function mp2rage_lookuptable(p::ParamsMP2RAGE;T1Range=1:0.5:10000,effInv = 0.96)
+function mp2rage_lookuptable_cartesian(p::ParamsMP2RAGE;T1Range=1:0.5:10000,effInv = 0.96)
     TI1 =p.TI₁
     TI2 =p.TI₂
     TR = p.TR
@@ -168,7 +175,7 @@ end
 """
     mp2rage_lookuptable_radial(p::ParamsMP2RAGE;T1Range=1:0.5:10000,effInv = 0.96)
 
-    Compute lookup table according to the MP2RAGE parameters
+    Compute lookup table according to the MP2RAGE parameters summing all the echoesl (mandatory for radial acquisition)
 
 # Arguments
 - `p::ParamsMP2RAGE`: MP2RAGE parameters structure
@@ -182,7 +189,7 @@ end
 
 # Bibliography
 - Marques JP, Kober T, Krueger G, van der Zwaag W, Van de Moortele P-F, Gruetter R. MP2RAGE, a self bias-field corrected sequence for improved segmentation and T1-mapping at high field. NeuroImage 2010;49:1271–1281 doi: 10.1016/j.neuroimage.2009.10.002.
-- Faller et al, ???
+- Faller TL, Trotier AJ, Miraux S, Ribot EJ. Radial MP2RAGE sequence for rapid 3D T1 mapping of mouse abdomen: application to hepatic metastases. Eur Radiol. 2019 Nov;29(11):5844-5851. doi: 10.1007/s00330-019-06081-3. Epub 2019 Mar 19. PMID: 30888483.
 """
 function mp2rage_lookuptable_radial(p::ParamsMP2RAGE;T1Range=1:0.5:10000,effInv = 0.96)
     TI1 =p.TI₁
@@ -227,5 +234,5 @@ function mp2rage_lookuptable_radial(p::ParamsMP2RAGE;T1Range=1:0.5:10000,effInv 
 
     lookUpTable=GRE2.*GRE1./(GRE1.*GRE1+GRE2.*GRE2)
     lookUpTable[isnan.(lookUpTable)].= 0
-    return lookUpTable, T1Range
+    return vec(lookUpTable), T1Range
 end
