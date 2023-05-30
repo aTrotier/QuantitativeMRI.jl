@@ -43,7 +43,9 @@ function T2Fit_Exp(ima::Array{T,N}, t::AbstractVector{T}, p0=nothing; removePoin
         try
             fit_param[i,:] = curve_fit(model, t, ima[:, i], p0).param
         catch
-
+            M0[i] = NaN
+            T2[i] = NaN
+            noise[i] = NaN
         end
     end
 
@@ -103,7 +105,9 @@ function T2Fit_ExpNoise(ima::Array{T,N}, t::AbstractVector{T}, p0=nothing; remov
         try
             fit_param[i,:] = curve_fit(model, t, ima[:, i], p0).param
         catch
-
+            M0[i] = NaN
+            T2[i] = NaN
+            noise[i] = NaN
         end
     end
 
