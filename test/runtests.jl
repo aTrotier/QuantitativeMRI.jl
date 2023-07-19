@@ -13,8 +13,9 @@ using Random
 
         S = M0 * exp.(-t/T2)
         S = reshape(S,1,1,1,:)
+        S = repeat(S,8,6,3,1)
         fit_param = T2Fit_Exp(S,eltype(S).(t))
-        @test abs.(M0 - fit_param[1]) < 10e-6 && abs.(T2 - fit_param[2]) < 10e-6
+        @test abs.(M0 - fit_param[1,1,1,1]) < 10e-6 && abs.(T2 - fit_param[1,1,1,2]) < 10e-6
 
         @info "T2Fit + remove"
         t = 1:1:100
@@ -23,8 +24,9 @@ using Random
 
         S = M0 * exp.(-t/T2)
         S = reshape(S,1,1,1,:)
+        S = repeat(S,8,6,3,1)
         fit_param = T2Fit_Exp(S,eltype(S).(t),removePoint=true)
-        @test abs.(M0 - fit_param[1]) < 10e-6 && abs.(T2 - fit_param[2]) < 10e-6
+        @test abs.(M0 - fit_param[1,1,1,1]) < 10e-6 && abs.(T2 - fit_param[1,1,1,2]) < 10e-6
 
         @info "T2Fit_ExpNoise"
         t = collect(1.0:1.0:100.0)
@@ -35,8 +37,10 @@ using Random
 
         S = sqrt.((M0 * exp.(-t/T2)).^2 .+ 2*L*σ^2)
         S = reshape(S,1,1,1,:)
+        S = repeat(S,8,6,3,1)
         fit_param = T2Fit_ExpNoise(S,eltype(S).(t);L=L)
-        @test abs.(M0 - fit_param[1]) < 10e-6 && abs.(T2 - fit_param[2]) < 10e-6 && abs.(σ - fit_param[3]) < 10e-6
+
+        @test abs.(M0 - fit_param[1,1,1,1]) < 10e-6 && abs.(T2 - fit_param[1,1,1,2]) < 10e-6 && abs.(σ - fit_param[1,1,1,3]) < 10e-6
     end    
     @testset "T2Fit EPG" begin
         @info "T2Fit_EpgNoise"
@@ -54,16 +58,18 @@ using Random
         echos = M0 * MESE_EPG(T2,T1,delta,TE,ETL)
         
         ## add noise
-        echos_noise = abs.(add_gauss(echos, σ))
-
+        S = abs.(add_gauss(echos, σ))
+        S = reshape(S,1,1,1,:)
+        S = repeat(S,8,6,3,1)
+    
         # fit and check results
         x0 = [1,70.0,0.9,0]
-        fit_param = T2Fit_EpgNoise(echos_noise,T1,TE,ETL,x0)
+        fit_param = T2Fit_EpgNoise(S,T1,TE,ETL,x0)
 
-        @test (abs(fit_param[1]) - M0)/M0 < 0.05
-        @test (abs(fit_param[2]) - T2)/T2 < 0.05
-        @test (abs(fit_param[3]) - delta)/delta < 0.05
-        @test (abs(fit_param[4])/sqrt(2) - σ)/σ < 0.05
+        @test (abs(fit_param[1,1,1,1]) - M0)/M0 < 0.05
+        @test (abs(fit_param[1,1,1,2]) - T2)/T2 < 0.05
+        @test (abs(fit_param[1,1,1,3]) - delta)/delta < 0.05
+        @test (abs(fit_param[1,1,1,4])/sqrt(2) - σ)/σ < 0.05
     end
 
     @testset "MP2RAGE" begin
