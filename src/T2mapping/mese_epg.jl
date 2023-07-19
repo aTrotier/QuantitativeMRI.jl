@@ -34,8 +34,7 @@ function T2Fit_EpgNoise(ima::Array{T,N}, T1,TE,ETL, x0::Vector{Float64}=[1, 70.0
   ima = reshape(ima, :, dims[end])'
   
   fit_param = zeros(eltype(ima),dims[1:end-1]...,4)
-  #@inbounds Threads.@threads
-  for i in CartesianIndices(dims[1:end-1])
+  @inbounds Threads.@threads for i in CartesianIndices(dims[1:end-1])
     x0[1] = maximum(ima[i, :])
     fit_test = optimize(x -> residual_EpgNoise(x, vec(ima[:, i]), T1,TE,ETL), x0)
 
