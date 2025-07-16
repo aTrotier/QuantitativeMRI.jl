@@ -103,5 +103,10 @@ using Random
         T = Float32
         T1map, = mp2rage_T1maps(T.([[0,0 ];;[ 0,0]]),p)
         @test any(abs.(T1map .- [[1396.0,1396.0];;[1396.0,1396.0]]) .< [[1.0,1.0];;[1.0,1.0]])
+
+        # test conversion from T1map to MP2RAGE
+        MP2,T1R,lut = QuantitativeMRI.T1maps_mp2rage(T.([[1396.0,1396.0];;[1396.0,1396.0]]),p)
+        
+        @test any(isapprox.(T.([[0,0 ];;[ 0,0]]),MP2;atol=1e-3))
     end
 end
