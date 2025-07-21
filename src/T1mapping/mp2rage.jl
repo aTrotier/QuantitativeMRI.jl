@@ -153,19 +153,13 @@ function T1maps_mp2rage(T1map::Array{T},p::ParamsMP2RAGE;T1Range=1:10000,effInv 
     maxVal,maxIdx = findmax(lookUpTable)
     T1Range = T1Range[maxIdx:end]
     lookUpTable = lookUpTable[maxIdx:end]
-    LUT_TI1 = LUT_TI1[maxIdx:end]
-    LUT_TI2 = LUT_TI2[maxIdx:end]
 
     minVal,minIdx = findmin(lookUpTable)
     T1Range = T1Range[1:minIdx]
     lookUpTable = lookUpTable[1:minIdx]
-    LUT_TI1 = LUT_TI1[1:minIdx]
-    LUT_TI2= LUT_TI2[1:minIdx]
 
     MP2, T1Range, lookUpTable = T1maps_mp2rage(T1map,lookUpTable, T1Range)
-    TI1 = T1maps_TI(T1map,LUT_TI1, T1Range)
-    TI2 = T1maps_TI(T1map,LUT_TI2, T1Range)
-    return MP2, TI1, TI2, T1Range, lookUpTable, LUT_TI1, LUT_TI2
+    return MP2, T1Range, lookUpTable
 end
 
 
@@ -209,46 +203,6 @@ function T1_MP2(T1map::T,lookUpTable::AbstractVector,T1Range::AbstractVector) wh
     end
     return MP2
 end
-
-
-## Generate TI images from T1 map
-
-"""
-T1maps_mp2rage(T1map::Array{T},TI_LUT::AbstractVector, T1Range::AbstractVector) where T<:Real
-
-
-Generates the MP2RAGE / UNI images from the T1 maps. Compute Lookup table from MP2RAGE parameters. 
-
-keywords radial = false means that only the central echo is used to compute the signal (standard method for cartesian acquisition)
-If radial = true, all the echoes are sum.
-
-# Arguments
-- `T1map::Array{T}`
-- TI_LUT::AbstractVector
-- T1Range::AbstractVector
-
-
-# Returns
-- TI images
-"""
-function T1maps_TI(T1map::Array{T},TI_LUT::AbstractVector, T1Range::AbstractVector) where T<:Real
-    T1Range = T.(T1Range)
-    TI_LUT = T.(TI_LUT)
-    TI = T1_TI.(T1map,Ref(TI_LUT),Ref(T1Range))
-    return TI
-end
-
-function T1_TI(T1map::T,TI_LUT::AbstractVector,T1Range::AbstractVector) where T
-    idxFirst = searchsortedfirst(T1Range, T1map,lt= <=)
-
-    if idxFirst <= length(T1Range)-1
-        TI = TI_LUT[idxFirst]+(TI_LUT[idxFirst+1]-TI_LUT[idxFirst])*(T1map-T1Range[idxFirst])
-    else
-        TI= T(0)
-    end
-    return TI
-end
-
 
 
 """
