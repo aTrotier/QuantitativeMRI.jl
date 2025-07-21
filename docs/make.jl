@@ -15,6 +15,10 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "MP2RAGE" => [
+            "Standard reconstruction" => "MP2RAGE/mp2rage.md",
+            "Slab profile correction" => "MP2RAGE/mp2rage_slice_profile.md",
+            ],
     ],
 )
 
