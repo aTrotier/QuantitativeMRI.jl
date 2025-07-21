@@ -105,7 +105,7 @@ function mp2rage_T1maps(im_MP2::Array{T},p::ParamsMP2RAGE;T1Range=1:10000,effInv
 end
 
 function MP2_T1(p_MP2::T,lookUpTable::Vector{T},T1Range::Vector{T}) where T
-    idxFirst = searchsortedfirst(lookUpTable, p_MP2,lt= <=)
+    idxFirst = searchsortedfirst(lookUpTable, p_MP2,lt= <)
 
     if idxFirst <= length(T1Range)-1
         T1 = T1Range[idxFirst]+(T1Range[idxFirst+1]-T1Range[idxFirst])*(p_MP2-lookUpTable[idxFirst])
@@ -114,6 +114,96 @@ function MP2_T1(p_MP2::T,lookUpTable::Vector{T},T1Range::Vector{T}) where T
     end
     return T1
 end
+
+######################################
+######## Convert T1 maps to MP2RAGE image 
+######################################
+
+"""
+T1maps_MP2RAGE(T1map::Array{T},p::ParamsMP2RAGE;T1Range=1:10000,effInv = 0.96,radial=false) where T<:Real
+
+
+Generates the MP2RAGE / UNI images from the T1 maps. Compute Lookup table from MP2RAGE parameters. 
+
+keywords radial = false means that only the central echo is used to compute the signal (standard method for cartesian acquisition)
+If radial = true, all the echoes are sum.
+
+# Arguments
+- `T1map::Array{T}`
+- `p::ParamsMP2RAGE`
+
+
+# Keywords
+- T1Range = 1:10000
+- effInv = 0.96
+- radial = false 
+
+# Returns
+- MP2
+- T1Range
+- lookUpTable
+"""
+function T1maps_mp2rage(T1map::Array{T},p::ParamsMP2RAGE;T1Range=1:10000,effInv = 0.96,radial=false) where T<:Real
+     # Generate lookUpTable + cut min
+    if !radial
+        lookUpTable,T1Range,LUT_TI1,LUT_TI2 = mp2rage_lookuptable_cartesian(p; T1Range=T1Range, effInv=effInv)
+    else
+        lookUpTable,T1Range,LUT_TI1,LUT_TI2 = mp2rage_lookuptable_radial(p; T1Range=T1Range, effInv=effInv)
+    end
+    maxVal,maxIdx = findmax(lookUpTable)
+    T1Range = T1Range[maxIdx:end]
+    lookUpTable = lookUpTable[maxIdx:end]
+
+    minVal,minIdx = findmin(lookUpTable)
+    T1Range = T1Range[1:minIdx]
+    lookUpTable = lookUpTable[1:minIdx]
+
+    MP2, T1Range, lookUpTable = T1maps_mp2rage(T1map,lookUpTable, T1Range)
+    return MP2, T1Range, lookUpTable
+end
+
+
+
+"""
+T1maps_mp2rage(T1map::Array{T},lookUpTable::AbstractVector, T1Range::AbstractVector) where T<:Real
+
+
+Generates the MP2RAGE / UNI images from the T1 maps. Compute Lookup table from MP2RAGE parameters. 
+
+keywords radial = false means that only the central echo is used to compute the signal (standard method for cartesian acquisition)
+If radial = true, all the echoes are sum.
+
+# Arguments
+- `T1map::Array{T}`
+- lookUpTable::AbstractVector
+- T1Range::AbstractVector
+
+
+# Returns
+- MP2
+- T1Range
+- lookUpTable
+"""
+function T1maps_mp2rage(T1map::Array{T},lookUpTable::AbstractVector, T1Range::AbstractVector) where T<:Real
+
+    # reverse lookUpTable and Range for optimization purpose + convert to type of MP2
+    T1Range = T.(T1Range)
+    lookUpTable = T.(lookUpTable)
+    MP2 = T1_MP2.(T1map,Ref(lookUpTable),Ref(T1Range))
+    return MP2, T1Range, lookUpTable
+end
+
+function T1_MP2(T1map::T,lookUpTable::AbstractVector,T1Range::AbstractVector) where T
+    idxFirst = searchsortedfirst(T1Range, T1map,lt= <=)
+
+    if idxFirst <= length(T1Range)-1
+        MP2 = lookUpTable[idxFirst]+(lookUpTable[idxFirst+1]-lookUpTable[idxFirst])*(T1map-T1Range[idxFirst])
+    else
+        MP2 = T(-0.5)
+    end
+    return MP2
+end
+
 
 """
     mp2rage_lookuptable(p::ParamsMP2RAGE;T1Range=1:0.5:10000,effInv = 0.96)
@@ -169,7 +259,7 @@ function mp2rage_lookuptable_cartesian(p::ParamsMP2RAGE;T1Range=1:0.5:10000,effI
 
     lookUpTable=GRE2.*GRE1./(GRE1.*GRE1+GRE2.*GRE2)
     lookUpTable[isnan.(lookUpTable)].= 0
-    return lookUpTable, T1Range
+    return lookUpTable, T1Range, GRE1, GRE2
 end
 
 """
@@ -234,5 +324,5 @@ function mp2rage_lookuptable_radial(p::ParamsMP2RAGE;T1Range=1:0.5:10000,effInv 
 
     lookUpTable=GRE2.*GRE1./(GRE1.*GRE1+GRE2.*GRE2)
     lookUpTable[isnan.(lookUpTable)].= 0
-    return vec(lookUpTable), T1Range
+    return vec(lookUpTable), T1Range, vec(GRE1), vec(GRE2)
 end

@@ -1,3 +1,5 @@
 [deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
 QuantitativeMRI = "659767e3-31a7-4dc1-8563-6e03f484b231"
