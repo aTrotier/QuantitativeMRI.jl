@@ -115,11 +115,9 @@ function MP2_T1(p_MP2::T,lookUpTable::Vector{T},T1Range::Vector{T}) where T
     return T1
 end
 
-
-############################
-######## Convert T1 maps to UNI image 
-############################
-
+######################################
+######## Convert T1 maps to MP2RAGE image 
+######################################
 
 """
 T1maps_MP2RAGE(T1map::Array{T},p::ParamsMP2RAGE;T1Range=1:10000,effInv = 0.96,radial=false) where T<:Real
@@ -250,6 +248,8 @@ function T1_TI(T1map::T,TI_LUT::AbstractVector,T1Range::AbstractVector) where T
     end
     return TI
 end
+
+
 
 """
     mp2rage_lookuptable(p::ParamsMP2RAGE;T1Range=1:0.5:10000,effInv = 0.96)
